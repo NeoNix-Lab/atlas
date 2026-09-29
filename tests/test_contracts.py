@@ -4,8 +4,18 @@ from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from atlas.contracts.document import CanonicalDocument, EntityMention, SourcePlatform
-from atlas.contracts.jev import PolarChoice, SemanticVector
+from atlas.contracts.document import (
+    CanonicalDocument,
+    EntityMention,
+    OnChainMetadata,
+    SourcePlatform,
+)
+from atlas.contracts.jev import (
+    OnChainFlowIntent,
+    OnChainSemanticVector,
+    PolarChoice,
+    SemanticVector,
+)
 
 
 def test_canonical_document_creation_and_hash():
@@ -42,6 +52,39 @@ def test_canonical_document_creation_and_hash():
     assert doc.observed_at.tzinfo == timezone.utc
 
 
+def test_canonical_document_with_onchain_metadata():
+    now_utc = datetime.now(timezone.utc)
+    clean_text = "Whale Alert: 5,000 BTC ($500M) transferred from Coinbase to unknown wallet"
+    doc_id = CanonicalDocument.compute_document_id(
+        SourcePlatform.ONCHAIN_EVENT, "tx_12345", clean_text
+    )
+
+    doc = CanonicalDocument(
+        document_id=doc_id,
+        source=SourcePlatform.ONCHAIN_EVENT,
+        source_id="tx_12345",
+        source_author="mempool_monitor",
+        published_at=now_utc,
+        observed_at=now_utc,
+        raw_text=clean_text,
+        clean_text=clean_text,
+        onchain_data=OnChainMetadata(
+            tx_hash="tx_12345",
+            amount_btc=5000.0,
+            usd_value_approx=500_000_000.0,
+            from_cluster="Coinbase Cold",
+            to_cluster="Unknown Vault",
+        ),
+        raw_storage_uri="data/raw/onchain/2026-09-29/tx_12345.json.gz",
+        raw_payload_sha256="abc123sha256",
+    )
+
+    assert doc.source == SourcePlatform.ONCHAIN_EVENT
+    assert doc.onchain_data is not None
+    assert doc.onchain_data.amount_btc == 5000.0
+    assert doc.onchain_data.from_cluster == "Coinbase Cold"
+
+
 def test_canonical_document_immutability():
     now_utc = datetime.now(timezone.utc)
     clean = "Test Bitcoin news"
@@ -60,7 +103,6 @@ def test_canonical_document_immutability():
     )
 
     with pytest.raises(ValidationError):
-        # Should be frozen/immutable
         doc.clean_text = "Mutated text"  # type: ignore
 
 
@@ -81,25 +123,39 @@ def test_semantic_vector_factory():
     assert vec.polarity_score == 1.0
     assert vec.credibility_weight == 1.0
     assert vec.urgency_weight == 0.75
-    # Impact should be strongly positive
     assert vec.effective_sentiment_impact > 0.8
 
 
-def test_semantic_vector_bearish_fud():
+def test_onchain_semantic_vector_accumulation():
     now_utc = datetime.now(timezone.utc)
-    vec = SemanticVector.from_jev_raw(
-        document_id="doc_test_2",
+    vec = OnChainSemanticVector.from_jev_raw(
+        document_id="tx_test_1",
         observed_at=now_utc,
-        is_btc_relevant=0.95,
-        is_fud_or_rumor=0.90,
-        sentiment_polarity="extreme_bearish",
-        credibility_tier="reputable_analyst",
-        market_urgency="critical",
+        amount_btc=10000.0,
+        is_immediate_sell_pressure=0.05,
+        flow_intent="cold_accumulation",
+        capital_magnitude="market_moving_shock",
     )
 
-    assert vec.polarity_score == -1.0
-    assert vec.fud_prob == 0.90
-    assert vec.credibility_weight == 0.75
-    assert vec.urgency_weight == 1.0
-    # Impact should be strongly negative
-    assert vec.effective_sentiment_impact < -0.7
+    assert vec.amount_btc == 10000.0
+    assert vec.flow_intent == OnChainFlowIntent.COLD_ACCUMULATION
+    assert vec.magnitude_weight == 1.0
+    # Net score should be strongly positive (accumulation)
+    assert vec.net_capital_intent_score > 0.9
+
+
+def test_onchain_semantic_vector_dump():
+    now_utc = datetime.now(timezone.utc)
+    vec = OnChainSemanticVector.from_jev_raw(
+        document_id="tx_test_2",
+        observed_at=now_utc,
+        amount_btc=3500.0,
+        is_immediate_sell_pressure=0.95,
+        flow_intent="exchange_inflow_dump",
+        capital_magnitude="whale",
+    )
+
+    assert vec.flow_intent == OnChainFlowIntent.EXCHANGE_INFLOW_DUMP
+    assert vec.magnitude_weight == 0.75
+    # Net score should be negative (dump)
+    assert vec.net_capital_intent_score < -0.7

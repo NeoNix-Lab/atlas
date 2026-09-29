@@ -15,7 +15,7 @@ class SourcePlatform(StrEnum):
     NEWS_CRYPTO = "news_crypto"
     NEWS_MAINSTREAM = "news_mainstream"
     REGULATORY = "regulatory"
-    ONCHAIN_ALERT = "onchain_alert"
+    ONCHAIN_EVENT = "onchain_event"
 
 
 class EntityMention(BaseModel):
@@ -28,8 +28,19 @@ class EntityMention(BaseModel):
     span_end: int = Field(ge=0)
 
 
+class OnChainMetadata(BaseModel):
+    """Optional metadata attached to discrete on-chain capital events."""
+    model_config = ConfigDict(frozen=True)
+
+    tx_hash: str = Field(default="", description="Bitcoin transaction hash")
+    amount_btc: float = Field(default=0.0, ge=0.0, description="Transferred volume in BTC")
+    usd_value_approx: float = Field(default=0.0, ge=0.0)
+    from_cluster: str = Field(default="", description="Origin entity/cluster (e.g. 'Coinbase Cold')")
+    to_cluster: str = Field(default="", description="Destination entity/cluster (e.g. 'Binance Deposit')")
+
+
 class CanonicalDocument(BaseModel):
-    """Authoritative normalized document representation across all ingestion sources.
+    """Authoritative normalized document representation in Atlas.
     
     Guarantees strict point-in-time correctness via dual timestamping
     (published_at vs observed_at) and immutable content-addressed identity.
@@ -41,10 +52,10 @@ class CanonicalDocument(BaseModel):
     )
     source: SourcePlatform
     source_id: str = Field(
-        description="Native ID from upstream source platform (e.g., tweet_id, post_id)"
+        description="Native ID from upstream source platform (e.g., tweet_id, post_id, tx_hash)"
     )
     source_author: str = Field(
-        default="", description="Username or author handle"
+        default="", description="Username, channel handle, or news desk"
     )
     source_url: str = Field(
         default="", description="Direct permalink URL if available"
@@ -78,6 +89,11 @@ class CanonicalDocument(BaseModel):
     )
     regex_spam_score: float = Field(
         default=0.0, ge=0.0, le=1.0, description="Heuristic spam probability from 0.0 to 1.0"
+    )
+
+    # On-Chain Metadata
+    onchain_data: OnChainMetadata | None = Field(
+        default=None, description="Structured metrics for discrete whale/flow events"
     )
 
     # Storage Lineage
