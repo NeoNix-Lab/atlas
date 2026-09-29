@@ -1,11 +1,11 @@
-"""Unit tests for core schemas, contracts, and invariants."""
+"""Unit tests for core schemas, contracts, and invariants in Atlas."""
 
 from datetime import datetime, timezone
 import pytest
 from pydantic import ValidationError
 
-from sentiment.contracts.document import CanonicalDocument, EntityMention, SourcePlatform
-from sentiment.contracts.jev import PolarChoice, SemanticVector
+from atlas.contracts.document import CanonicalDocument, EntityMention, SourcePlatform
+from atlas.contracts.jev import PolarChoice, SemanticVector
 
 
 def test_canonical_document_creation_and_hash():

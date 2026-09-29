@@ -1,16 +1,17 @@
 # PRODUCT.md
 
-**Project:** BTC Multi-Modal Sentiment Engine (`Sentiment`)  
+**Project:** Atlas (BTC Multi-Modal Sentiment & Latent Representation Engine)  
 **Status:** CANONICAL BASELINE v1.0 — Product Definition  
 **Target:** High-throughput, multi-modal Bitcoin market sentiment engine with point-in-time correctness, deterministic regex pre-filtering, TypeSafe Jev semantic typing, JEPA latent representation, and CLI operator control.  
-**Canonical Codebase:** `Sentiment`  
+**Canonical Codebase:** `atlas` (Repository: `Sentiment`)  
+**CLI Tool:** `atlas`  
 **Downstream Consumer & Arbitrator:** `quant-platform` (Feature Store, Alpha Research & Execution)
 
 ---
 
 ## 1. Product Mission
 
-`Sentiment` is the authoritative engine for harvesting, parsing, semantically classifying, and fusing market-wide sentiment signals for Bitcoin (BTC).
+`Atlas` is the authoritative engine for harvesting, parsing, semantically classifying, and fusing market-wide sentiment signals for Bitcoin (BTC).
 
 The platform transforms unstructured, noisy, and hostile external data streams (social media, mainstream news, regulatory releases, mempool velocity, and derivatives positioning) into temporally rigorous, quantitative features.
 
@@ -21,15 +22,15 @@ The platform transforms unstructured, noisy, and hostile external data streams (
 4. **Multi-Modal Feature Resampling (L3)**: Resample and fuse text sentiment vectors with on-chain mempool pressure and derivatives microstructure into sliding point-in-time windows (1m, 5m, 15m, 1h).
 5. **Self-Supervised Latent Representation (L4)**: Learn joint predictive market state transitions using a **JEPA** (Joint Embedding Predictive Architecture) context-target network, bypassing autoregressive token generation.
 6. **Feature Artifact Export**: Deliver strictly typed, point-in-time Parquet datasets conforming directly to `quant-platform`'s `FeatureArtifact v1` specification.
-7. **Single Operator Interface (CLI v1)**: Provide a comprehensive Command Line Interface (`sentiment`) as the sole v1 human-system interaction point for daemon management, backfill execution, pipeline probing, budget protection, and feature export.
+7. **Single Operator Interface (CLI v1)**: Provide a comprehensive Command Line Interface (`atlas`) as the sole v1 human-system interaction point for daemon management, backfill execution, pipeline probing, budget protection, and feature export.
 
 ---
 
 ## 2. Invariants & Product Principles
 
 ### 2.1 Separation of Concerns with `quant-platform`
-* **`Sentiment` is a Feature Producer**: It owns data harvesting, text sanitization, semantic classification, multimodal alignment, representation learning, and intrinsic data quality validation (non-collapse, schema conformity, spam precision).
-* **`quant-platform` is the Alpha Arbitrator**: Statistical validation against market outcomes (Information Coefficient on forward returns, Event Studies, Walk-Forward splits, Purge & Embargo, and Deflated Sharpe Ratio / PBO) belongs exclusively to `quant-platform`. `Sentiment` never duplicates trading backtests or price candle calculations.
+* **`Atlas` is a Feature Producer**: It owns data harvesting, text sanitization, semantic classification, multimodal alignment, representation learning, and intrinsic data quality validation (non-collapse, schema conformity, spam precision).
+* **`quant-platform` is the Alpha Arbitrator**: Statistical validation against market outcomes (Information Coefficient on forward returns, Event Studies, Walk-Forward splits, Purge & Embargo, and Deflated Sharpe Ratio / PBO) belongs exclusively to `quant-platform`. `Atlas` never duplicates trading backtests or price candle calculations.
 
 ### 2.2 Absolute Point-in-Time Correctness (Dual-Timestamp Invariant)
 Every document and derived feature row enforces two distinct UTC timestamps:
@@ -52,7 +53,7 @@ The system explicitly rejects free-form conversational LLM prompts. All semantic
 * `Score`: Ordinal ranked tiers.
 
 ### 2.5 CLI-First Operational Control (v1 Boundary)
-For version 1.0, the primary operator access point is strictly the Command Line Interface (`sentiment`). No web GUI or browser runtime is part of the v1 scope. All monitoring, probing, daemon control, budget guardrails, and data exports are driven via CLI commands and declarative configuration (`sentiment.toml`).
+For version 1.0, the primary operator access point is strictly the Command Line Interface (`atlas`). No web GUI or browser runtime is part of the v1 scope. All monitoring, probing, daemon control, budget guardrails, and data exports are driven via CLI commands and declarative configuration (`atlas.toml`).
 
 ### 2.6 WORM Raw Tier Immutability
 All harvested payloads (raw JSON, HTML bodies, wire responses) are stored in an append-only Write-Once-Read-Many (WORM) raw tier, content-addressed by SHA-256 hashes. If parsing regexes or semantic prompts change, historical data can be deterministically replayed.
@@ -62,15 +63,15 @@ All harvested payloads (raw JSON, HTML bodies, wire responses) are stored in an 
 ## 3. Downstream Consumers
 
 1. **`quant-platform` Feature Engine & Strategy Runtimes**: Consumes exported Parquet feature tables for cross-validation, hypothesis testing, and quantitative trading signals.
-2. **System Operator**: Controls and inspects the pipeline through the `sentiment` CLI tool and configuration files.
+2. **System Operator**: Controls and inspects the pipeline through the `atlas` CLI tool and configuration files.
 
 ---
 
 ## 4. Non-Goals for Version 1.0
 
 1. **No Web GUI or Browser Dashboard**: A visual dashboard is explicitly deferred beyond v1. All v1 interactions are headless and CLI-driven.
-2. **No Direct Trading Execution**: `Sentiment` does not connect to exchange trading accounts or execute orders.
-3. **No Internal Backtesting Engine**: `Sentiment` does not calculate Sharpe ratios, simulated PnL, or strategy returns against price candles. That responsibility belongs strictly to `quant-platform`.
+2. **No Direct Trading Execution**: `Atlas` does not connect to exchange trading accounts or execute orders.
+3. **No Internal Backtesting Engine**: `Atlas` does not calculate Sharpe ratios, simulated PnL, or strategy returns against price candles. That responsibility belongs strictly to `quant-platform`.
 4. **No Free-Form Generative Chat**: The engine never generates discursive prose or explanatory summaries.
 5. **No Unfiltered Social Firehose Storage**: Raw social media posts that fail the Regex spam filter are dropped immediately from persistent canonical storage.
 

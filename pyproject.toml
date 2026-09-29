@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sentiment"
+name = "atlas"
 version = "0.1.0"
-description = "Multi-Modal Bitcoin Market Sentiment Engine with Regex Pre-Filtering, TypeSafe Jev Semantic Typing, and JEPA Latent Representation"
+description = "Atlas: Multi-Modal Bitcoin Market Sentiment & Representation Engine"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -23,7 +23,12 @@ dependencies = [
     "orjson>=3.10.0",
     "loguru>=0.7.2",
     "python-dotenv>=1.0.1",
+    "click>=8.1.7",
+    "rich>=13.7.1",
 ]
+
+[project.scripts]
+atlas = "atlas.cli:main"
 
 [project.optional-dependencies]
 dev = [
