@@ -1,0 +1,38 @@
+# Target Architecture & Governance Files
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local Data Storage & Tiers (Raw WORM & Feature Cache)
+data/raw/*
+!data/raw/.gitkeep
+data/canonical/*
+!data/canonical/.gitkeep
+data/features/*
+!data/features/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+*.parquet
+*.duckdb
+*.sqlite
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
